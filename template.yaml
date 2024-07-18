@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  StartEc2InstancesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda_function_start.lambda_handler
+      Runtime: python3.8
+      CodeUri: ./
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ec2:StartInstances
+                - ec2:DescribeInstances
+              Resource: "*"
+      Events:
+        ScheduleRule:
+          Type: Schedule
+          Properties:
+            Schedule: "cron(0 16 * * ? *)"  # Runs the Lambda function at 05:05 AM UTC every day
+
+  StopEc2InstancesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda_function_stop.lambda_handler
+      Runtime: python3.8
+      CodeUri: ./
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ec2:StopInstances
+                - ec2:DescribeInstances
+              Resource: "*"
+      Events:
+        ScheduleRule:
+          Type: Schedule
+          Properties:
+            Schedule: "cron(5 16 * * ? *)"  # Runs the Lambda function at 23:00 UTC every day
+
+Outputs:
+  StartEc2InstancesFunction:
+    Description: "ARN of the Start EC2 Instances Lambda Function"
+    Value: !GetAtt StartEc2InstancesFunction.Arn
+  StopEc2InstancesFunction:
+    Description: "ARN of the Stop EC2 Instances Lambda Function"
+    Value: !GetAtt StopEc2InstancesFunction.Arn
